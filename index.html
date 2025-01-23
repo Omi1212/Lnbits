@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Propinas Lightning</title>
+    <link rel="stylesheet" href="src/css/styles.css" />
+  </head>
+  <body>
+    <h1>Bote de Propinas Lightning</h1>
+    <section id="crearBote">
+      <h2>Crear Nuevo Bote</h2>
+      <input
+        type="text"
+        id="nombreBote"
+        placeholder="Nombre del bote"
+        required
+      />
+      <input
+        type="number"
+        id="metaBote"
+        placeholder="Meta en satoshis (opcional)"
+      />
+      <button onclick="crearBote()">Crear Bote de Propinas</button>
+    </section>
+    <section id="visualizarBote" style="display: none">
+      <h2>Bote de Propinas: <span id="nombreBoteVisualizar"></span></h2>
+      <p>
+        Progreso: <span id="totalRecaudado">0</span> /
+        <span id="metaVisualizar">∞</span> sats
+      </p>
+      <div id="progreso">
+        <div id="barraProgreso"></div>
+      </div>
+      <p>Enlace único: <span id="enlaceBote"></span></p>
+      <div id="qrCode"></div>
+    </section>
+    <section id="contribuir" style="display: none">
+      <h2>Contribuir al Bote</h2>
+      <input
+        type="number"
+        id="montoDonacion"
+        placeholder="Monto en satoshis"
+        required
+      />
+      <button onclick="generarFactura()">Generar Factura Lightning</button>
+      <p id="mensajeContribucion"></p>
+    </section>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="src/services/script.js"></script>
+  </body>
+</html>
