@@ -1,6 +1,6 @@
-const API_KEY = ""; // Ingresar tu Admin Key de LNbits
-const API_URL = ""; // Ingresar URL de tu instancia de LNbits
-let walletId = ""; // Ingresar tu Wallet ID de LNbits
+const API_KEY = ""; // Admin Key de LNbits
+const API_URL = ""; // URL de tu instancia de LNbits
+let walletId = ""; // Wallet ID de LNbits
 
 async function crearBote() {
   const nombre = document.getElementById("nombreBote").value;
@@ -11,41 +11,20 @@ async function crearBote() {
     return;
   }
 
-  try {
-    const reponse = await fetch(`${API_URL}/api/v1/wallet`, {
-      method: "POST",
-      headers: {
-        "X-Api-Key": API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name: nombre }),
-    });
+  document.getElementById("crearBote").style.display = "none";
+  document.getElementById("visualizarBote").style.display = "block";
+  document.getElementById("contribuir").style.display = "block";
 
-    const data = await reponse.json();
-    walletId = data.id;
+  document.getElementById("nombreBoteVisualizar").textContent = nombre;
 
-    document.getElementById("crearBote").style.display = "none";
-    document.getElementById("visualizarBote").style.display = "block";
-    document.getElementById("contribuir").style.display = "block";
-
-    document.getElementById("nombreBoteVisualizar").textContent = nombre;
-
-    if (meta) {
-      document.getElementById("metaVisualizar").textContent = meta;
-    }
-
-    const enlace = `${window.location.origin}${window.location.pathname}?bote=${walletId}`;
-    document.getElementById("enlaceBote").textContent = enlace;
-    generarQR(enlace);
-
-    actualizarProgreso();
-    setInterval(actualizarProgreso, 30000);
-
-    iniciarWebSocket();
-  } catch (error) {
-    console.error("Error al crear el bote:", error);
-    alert("Hubo error al crear el bote. Por favor, intenta de nuevo.");
+  if (meta) {
+    document.getElementById("metaVisualizar").textContent = meta;
   }
+
+  actualizarProgreso();
+  setInterval(actualizarProgreso, 30000);
+
+  iniciarWebSocket();
 }
 
 function generarQR(enlace) {
@@ -85,22 +64,41 @@ async function actualizarProgreso() {
 
 async function generarFactura() {
   const monto = document.getElementById("montoDonacion").value;
+  const descripcion = document.getElementById("descripcion").value;
+  const usuario = document.getElementById("usuario").value;
+
   if (!monto || monto <= 0) {
     alert("Por favor, ingresa un monto válido para donar.");
     return;
   }
 
+  if (!descripcion) {
+    alert("Por favor, ingresa una descripción.");
+    return;
+  }
+
+  if (!usuario) {
+    alert("Por favor, ingresa un nombre de usuario.");
+    return;
+  }
+
   try {
-    const response = await fetch(`${API_URL}/api/v1/payments`, {
+    const response = await fetch(`${API_URL}/lnurlp/api/v1/links`, {
       method: "POST",
       headers: {
         "X-Api-Key": API_KEY,
         "Content-Type": "application/json",
+        "accept": "application/json"
       },
       body: JSON.stringify({
-        out: false,
-        amount: monto,
-        memo: "Contribución al Bote de Propinas",
+        description: descripcion,
+        wallet: walletId,
+        min: 1,
+        max: 100000,
+        currency: null,
+        fiat_base_multiplier: 100,
+        username: usuario,
+        zaps: false
       }),
     });
     const data = await response.json();
@@ -108,11 +106,11 @@ async function generarFactura() {
     document.getElementById("mensajeContribucion").innerHTML = `
                <p>Escanea este código QR para contribuir ${monto} sats:</p>
                <div id="qrFactura"></div>
-               <p>O usa esta factura Lightning:</p>
-               <textarea readonly>${data.payment_request}</textarea>
+               <p>O usa este enlace LNURL:</p>
+               <textarea readonly>${data.lnurl}</textarea>
            `;
 
-    generarQR(data.payment_request);
+    generarQR(data.lnurl);
   } catch (error) {
     console.error("Error al generar la factura:", error);
     alert("Hubo un error al generar la factura. Por favor, intenta de nuevo.");
@@ -121,7 +119,7 @@ async function generarFactura() {
 
 function iniciarWebSocket() {
   const ws = new WebSocket(
-    `wss://drearytoucan5.lnbits.com/api/v1/ws/${walletId}`
+    `wss://${API_URL}/api/v1/ws/${walletId}`
   );
   ws.onmessage = function (event) {
     const message = JSON.parse(event.data);
